@@ -11,11 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->id();
-            $table->string('email');
-            $table->string('token');
-        });
+        Schema::rename('password_reset_tokens', 'temporary_tokens');
     }
 
     /**
@@ -23,6 +19,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('password_reset_tokens');
+        Schema::table('new', function (Blueprint $table) {
+            //
+        });
     }
 };
