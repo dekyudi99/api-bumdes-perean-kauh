@@ -140,6 +140,6 @@ class AuthController extends Controller
         $user->email_verified = 1;
         $user->save();
 
-        return new ApiResponseResources(true, 'Verifikasi Email Berhasil');
+        return new ApiResponseResources(true, 'Verifikasi Email Berhasil', Null, 204);
     }
 }

@@ -174,6 +174,6 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return new ApiResponseResources(true, 'Produk Berhasil Dihapus!');
+        return new ApiResponseResources(true, 'Produk Berhasil Dihapus!', Null, 204);
     }
 }
