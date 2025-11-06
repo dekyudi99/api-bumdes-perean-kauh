@@ -17,7 +17,7 @@ class Vacancy extends Model
         'position',
         'location',
         'ex_date',
-        'desription',
+        'description',
     ];
 
     public function application() {

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->text('take_location');
             $table->text('additional_note')->nullable();
-            $table->unsignedBigInteger('officer_id');
+            $table->unsignedBigInteger('officer_id')->nullable();
             $table->timestamps();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users');

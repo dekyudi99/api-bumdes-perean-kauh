@@ -20,7 +20,7 @@ class Orders extends Model
         'user_id',
     ];
 
-    public function order_item() {
+    public function items() {
         return $this->hasMany(Order_item::class, 'order_id', 'id');
     }
 

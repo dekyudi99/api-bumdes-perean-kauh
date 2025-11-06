@@ -8,6 +8,7 @@ use App\Http\Resources\ApiResponseResources;
 use App\Models\Trash_sold;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Point;
 
 class TrashSoldController extends Controller
 {
@@ -15,8 +16,8 @@ class TrashSoldController extends Controller
     {
         $trashSold = Trash_sold::all();
 
-        if (!$trashSold) {
-            return new ApiResponseResources(false, 'Gagal Mendapatkan data Penjualan Sampah!', Null, 500);
+        if ($trashSold->isEmpty()) {
+            return new ApiResponseResources(false, 'Tidak Ada Penjualan Sampah!');
         }
 
         return new ApiResponseResources(true, 'Berhasil Mengambil data Penjualan Sampah!', $trashSold);
@@ -53,7 +54,7 @@ class TrashSoldController extends Controller
         }
 
         $officer = Auth::id();
-
+        
         $trashSold = Trash_sold::create([
             'trash_type' => $request->trash_type,
             'weight' => $request->weight,
@@ -61,8 +62,28 @@ class TrashSoldController extends Controller
             'officer' => $officer,
         ]);
 
+
         if (!$trashSold) {
             return new ApiResponseResources(false, 'Gagal Menyimpan Penjualan Sampah!', Null, 500);
+        }
+
+        $point = Point::where('user_id', $trashSold->user_id)->first();
+
+        if ($trashSold->trash_type == 'plastik') {
+            $point->update([
+                'point' => $point->point+$trashSold->weight*1000,
+                'user_id' => $trashSold->user_id,
+            ]);
+        } elseif ($trashSold->trash_type == 'kertas') {
+            $point->update([
+                'point' => $point->point+$trashSold->weight*2000,
+                'user_id' => $trashSold->user_id,
+            ]);
+        } elseif ($trashSold->trash_type == 'kaleng') {
+            $point->update([
+                'point' => $point->point+$trashSold->weight*5000,
+                'user_id' => $trashSold->user_id,
+            ]);
         }
 
         return new ApiResponseResources(true, 'Berhasil Menyimpan Penjualan Sampah!', $trashSold, 201);
@@ -79,45 +100,45 @@ class TrashSoldController extends Controller
         return new ApiResponseResources(true, 'Berhasil Mengambil Data Penjualan Sampah!', $trashSold);
     }
 
-    public function update (Request $request, $id)
-    {
-        $trashSold = Trash_sold::find($id);
+    // public function update (Request $request, $id)
+    // {
+    //     $trashSold = Trash_sold::find($id);
 
-        if (!$trashSold) {
-            return new ApiResponseResources(false, 'Data Penjualan Sampah Tidak Ada!', Null, 500);
-        }
+    //     if (!$trashSold) {
+    //         return new ApiResponseResources(false, 'Data Penjualan Sampah Tidak Ada!', Null, 500);
+    //     }
 
-        $message = [
-            'trash_type.required' => 'Tipe Sampah Wajib Diisi!',
-            'trash_type.in' => 'Tips Sampah Hanya Boleh Berupa :values',
-            'weight.required' => 'Berat Wajib Diisi!',
-            'weight.numeric' => 'Berat Wajib Berupa Angka!',
-            'weight.digits_between' => 'Berat Hanya Bisa 10 Digit Angka Saja!',
-        ];
+    //     $message = [
+    //         'trash_type.required' => 'Tipe Sampah Wajib Diisi!',
+    //         'trash_type.in' => 'Tips Sampah Hanya Boleh Berupa :values',
+    //         'weight.required' => 'Berat Wajib Diisi!',
+    //         'weight.numeric' => 'Berat Wajib Berupa Angka!',
+    //         'weight.digits_between' => 'Berat Hanya Bisa 10 Digit Angka Saja!',
+    //     ];
 
-        $validator = Validator::make($request->all(), [
-            'trash_type' => 'required|in:kaleng,kertas,plastik',
-            'weight' => 'required|numeric|digits_between:1,10',
-        ], $message);
+    //     $validator = Validator::make($request->all(), [
+    //         'trash_type' => 'required|in:kaleng,kertas,plastik',
+    //         'weight' => 'required|numeric|digits_between:1,10',
+    //     ], $message);
 
-        if ($validator->fails()) {
-            return new ApiResponseResources(false, $validator->errors(), Null, 500);
-        }
+    //     if ($validator->fails()) {
+    //         return new ApiResponseResources(false, $validator->errors(), Null, 500);
+    //     }
 
-        $officer = Auth::id();
+    //     $officer = Auth::id();
 
-        $trashSold->update([
-            'trash_type' => $request->trash_type,
-            'weight' => $request->weight,
-            'officer' => $officer,
-        ]);
+    //     $trashSold->update([
+    //         'trash_type' => $request->trash_type,
+    //         'weight' => $request->weight,
+    //         'officer' => $officer
+    //     ]);
 
-        if (!$trashSold) {
-            return new ApiResponseResources(false, 'Gagal Mengupdate Data Penjualan Sampah!', Null, 500);
-        }
+    //     if (!$trashSold) {
+    //         return new ApiResponseResources(false, 'Gagal Mengupdate Data Penjualan Sampah!', Null, 500);
+    //     }
 
-        return new ApiResponseResources(true, 'Berhasil Update Penjualan Sampah!', $trashSold);
-    }
+    //     return new ApiResponseResources(true, 'Berhasil Update Penjualan Sampah!', $trashSold);
+    // }
 
     public function myTrashSold()
     {

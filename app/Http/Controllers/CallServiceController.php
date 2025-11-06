@@ -7,9 +7,22 @@ use Illuminate\Http\Request;
 use App\Http\Resources\ApiResponseResources;
 use App\Models\Call_service;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\CallServiceMail;
+use Illuminate\Support\Facades\Mail;
 
 class CallServiceController extends Controller
 {
+    public function index()
+    {
+        $callService = Call_service::all();
+
+        if ($callService->isEmpty()) {
+            return new ApiResponseResources(false, 'Tidak Ada Pemanggilan Service');
+        }
+
+        return new ApiResponseResources(true, 'Berhasil Menampilkan Daftar Pemanggilan Service!', $callService);
+    }
+
     public function store(Request $request) 
     {
         $message = [
@@ -37,6 +50,9 @@ class CallServiceController extends Controller
         if (!$callService) {
             return new ApiResponseResources(false, 'Pemanggilan Service Gagal Dibuat!', Null, 500);
         }
+
+        $adminEmails = \App\Models\User::where('role', 'adminBankSampah')->pluck('email');
+        Mail::to($adminEmails)->send(new CallServiceMail($callService));
 
         return new ApiResponseResources(true, 'Berhasil Membuat Pemanggilan Service', $callService, 201);
     }

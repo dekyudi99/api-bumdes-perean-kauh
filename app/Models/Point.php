@@ -12,7 +12,7 @@ class Point extends Model
 
     protected $table = 'point';
     protected $fillable = [
-        'total_point',
+        'point',
         'user_id',
     ];
 

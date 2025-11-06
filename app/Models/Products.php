@@ -24,6 +24,8 @@ class Products extends Model
     ];
     protected $appends = ['rating', 'image_url'];
 
+    protected $hidden = ['images'];
+
     public function getRatingAttribute() {
         return round($this->review()->avg('rating') ?? 0, 1);
     }

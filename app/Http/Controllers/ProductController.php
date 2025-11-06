@@ -17,7 +17,7 @@ class ProductController extends Controller
         $product = Products::all();
 
         if ($product->isEmpty()) {
-            return new ApiResponseResources(false, 'Gagal Menampilkan Product!', null, 422);
+            return new ApiResponseResources(false, 'Tidak Ada Product Tersedia!');
         }
 
         return new ApiResponseResources(true, 'Berhasil Menampilkan Product!', $product);
@@ -74,7 +74,7 @@ class ProductController extends Controller
         }
 
         if (!$product) {
-            return new ApiResponseResources(false, 'Gagal Menyimpan Produk!', null, 422);
+            return new ApiResponseResources(false, 'Gagal Menyimpan Produk!', null, 500);
         }
 
         return new ApiResponseResources(true, 'Produk Berhasil Disimpan!', $product);
@@ -174,6 +174,6 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return new ApiResponseResources(true, 'Produk Berhasil Dihapus!', Null, 204);
+        return new ApiResponseResources(true, 'Produk Berhasil Dihapus!', Null, 200);
     }
 }

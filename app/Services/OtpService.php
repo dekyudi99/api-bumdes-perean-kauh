@@ -7,6 +7,7 @@ use App\Models\Temporary_token;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Resources\ApiResponseResources;
 
 class OtpService
 {

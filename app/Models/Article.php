@@ -16,4 +16,9 @@ class Article extends Model
         'image',
         'post_by',
     ];
+    protected $appends = ['url_image'];
+
+    public function getUrlImageAttribute() {
+        return env('APP_URL') . '/storage/' . $this->image;
+    }
 }

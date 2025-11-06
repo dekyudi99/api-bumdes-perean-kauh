@@ -12,10 +12,14 @@ class Membership extends Model
 
     protected $table = 'membership';
     protected $fillable = [
+        'invoice_number',
         'type',
         'is_active',
         'expired_at',
         'user_id',
+    ];
+    protected $casts = [
+        'expired_at' => 'datetime',
     ];
 
     public function user() {

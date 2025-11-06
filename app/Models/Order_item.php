@@ -14,7 +14,7 @@ class Order_item extends Model
     protected $table = 'order_item';
     protected $fillable = [
         'quantity',
-        'name_at_purcahse',
+        'name_at_purchase',
         'description_at_purchase',
         'price_at_purchase',
         'subtotal',

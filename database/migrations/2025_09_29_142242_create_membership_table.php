@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('membership', function (Blueprint $table) {
             $table->id();
+            $table->string('invoice_number');
             $table->enum('type', ['individu', 'usaha']);
             $table->boolean('is_active')->default(0);
             $table->timestamp('expired_at');

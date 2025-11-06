@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Services\OtpService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ChangePasswordMail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Models\Point;
 
 class AuthController extends Controller
 {
@@ -23,7 +28,6 @@ class AuthController extends Controller
     {
         $messages = [
             'name.required'=> 'Nama wajib diisi!',
-            'name.alpha' => 'Nama wajib berupa huruf!',
             'name.min' => 'Nama minimal 3 karakter!',
             'name.max' => 'Nama maksimal 100 karakter!',
             'email.required' => 'Email wajib diisi!',
@@ -34,7 +38,7 @@ class AuthController extends Controller
         ];
 
         $validator = Validator::make($request->all(), [
-            'name'      => 'required|alpha|min:3|max:100',
+            'name'      => 'required|min:3|max:100',
             'email'     => 'required|email|unique:users',
             'password'  => 'required|min:8',
         ], $messages);
@@ -52,6 +56,13 @@ class AuthController extends Controller
         if (!$user) {
             return new ApiResponseResources(false, 'Registrasi Gagal!', null, 422);
         }
+
+        Point::create([
+            'point' => 0,
+            'user_id' => $user->id,
+        ]);
+
+        
 
         $token = $user->createToken('auth_token')->plainTextToken;
         $this->otpService->generate($request->email);
@@ -119,11 +130,12 @@ class AuthController extends Controller
     public function verifyEmail(Request $request) {
         $messages = [
             'otp.required' => 'Kode OTP wajib diisi!',
-            'otp.digits' => 'Kode OTP wajib 6 digit!'
+            'otp.digits' => 'Kode OTP wajib 6 digit!',
+            'otp.integer' => 'Kode OTP wajib Berupa Integer',
         ];
         
         $validator = Validator::make($request->all(), [
-            'otp' => 'required|digits:6',
+            'otp' => 'required|integer|digits:6',
         ], $messages);
 
         if ($validator->fails()) {
@@ -140,6 +152,69 @@ class AuthController extends Controller
         $user->email_verified = 1;
         $user->save();
 
-        return new ApiResponseResources(true, 'Verifikasi Email Berhasil', Null, 204);
+        return new ApiResponseResources(true, 'Verifikasi Email Berhasil', Null);
+    }
+
+    public function forgetPassword(Request $request)
+    {
+        $messages = [
+            'email.required' => 'Email Wajib Diisi!',
+            'email.email' => 'Format Email Salah!',
+            'email.exists' => 'Email Tidak Terdaftar!',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'email'=> 'required|email|exists:users,email',
+        ], $messages);
+
+        if ($validator->fails()) {
+            return new ApiResponseResources(false, $validator->errors(), null, 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        $token = Str::random(60);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            ['token' => $token],
+        );
+
+        Mail::to($user->email)->send(new ChangePasswordMail($user, $token));
+
+        return new ApiResponseResources(true, 'Link Ganti Password Telah Dikirim ke Email');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $messages = [
+            'password.required' => 'Password Wajib Diisi!',
+            'password.min' => 'Password Minimal 8 Karakter!',
+            'confirmPassword.required' => 'Konfirmasi Password Wajib Diisi!',
+            'confirmPassword.same' => 'Konfirmasi Password Harus Sama!',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'token' => 'required',
+            'password'=> 'required|min:8|same:confirmPassword',
+            'confirmPassword' => 'required|min:8',
+        ], $messages);
+
+        if ($validator->fails()) {
+            return new ApiResponseResources(false, $validator->errors(), null, 422);
+        }
+
+        $reset = DB::table('password_reset_tokens')->where('token', $request->token)->first();
+
+        if (!$reset) {
+            return new ApiResponseResources(false, 'Token tidak valid atau sudah kadaluarsa.', null, 400);
+        }
+
+        $user = User::where('email', $reset->email)->first();
+        $user->update(['password' => Hash::make($request->password)]);
+
+        DB::table('password_reset_tokens')->where('email', $reset->email)->delete();
+
+        return new ApiResponseResources(true, 'Password berhasil diperbarui.');
     }
 }

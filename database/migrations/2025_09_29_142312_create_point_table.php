@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('point', function (Blueprint $table) {
             $table->id();
-            $table->integer('total_point');
+            $table->integer('point');
             $table->timestamps();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
         });
